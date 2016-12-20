@@ -1,2 +1,3 @@
-# amavis-vba-detector
-An Amavis antivirus plugin for detecting renamed office files that contain macros.
+# amavis-med-detector
+An Amavis antivirus plugin for detecting macro enabled office documents (.docm, .xlsm)
+

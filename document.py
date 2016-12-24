@@ -36,7 +36,7 @@ class Document:
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setFormatter(logging.Formatter('%(message)s'))
         Document._logger.addHandler(console_handler)
-        Document._logger.setLevel(logging.DEBUG)
+        Document._logger.setLevel(logging.WARNING)
 
     def check(self):
         try:

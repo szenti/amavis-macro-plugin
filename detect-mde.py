@@ -5,7 +5,14 @@ import sys
 import os
 
 if len(sys.argv) != 2:
-    print "Usage:\n{0} <path to file>".format(os.path.split(sys.argv[0])[1])
+    print "Usage:\n{0} <path to directory>".format(os.path.split(sys.argv[0])[1])
     exit(0)
 
-Document(sys.argv[1]).check()
+path = sys.argv[1]
+
+if not os.path.isdir(path):
+    exit(1)
+
+for filename in os.listdir(path):
+    file_path = os.path.join(path, filename)
+    Document(file_path).check()

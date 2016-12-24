@@ -6,7 +6,7 @@ import sys
 import logging
 
 
-class InvalidContentError(RuntimeError):
+class SkipChecks(RuntimeError):
     pass
 
 
@@ -18,6 +18,8 @@ MIME_TYPE_ALLOWED_EXTENSIONS = {
 
 
 class Document:
+    _logger = None
+
     def __init__(self, filename):
         self._file_path = filename
         self._file_name, self._extension = os.path.splitext(os.path.split(filename)[1])
@@ -27,24 +29,33 @@ class Document:
         self._setup_logging()
 
     def _setup_logging(self):
-        self._logger = logging.getLogger('document')
+        if Document._logger:
+            return
+
+        Document._logger = logging.getLogger('document')
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.WARNING)
         console_handler.setFormatter(logging.Formatter('%(message)s'))
-        self._logger.addHandler(console_handler)
+        Document._logger.addHandler(console_handler)
+        Document._logger.setLevel(logging.DEBUG)
 
     def check(self):
         try:
             self._check_file_exists()
             self._check_extension_differs_from_content(self._get_type())
             self._log_clean()
-        except:
-            sys.exit(1)
+        except SkipChecks:
+            return
+        except Exception as ex:
+            self._logger.error(ex)
+            return
 
     def _check_file_exists(self):
         if not os.path.exists(self._file_path):
             self._logger.error('File {0} does not exist'.format(self._file_path))
-            raise IOError('File does not exist')
+            raise SkipChecks()
+
+        if not os.path.isfile(self._file_path):
+            raise SkipChecks()
 
     def _get_type(self):
         return self._magic.from_file(self._file_path)
@@ -55,7 +66,7 @@ class Document:
 
         if self._extension.lower() not in MIME_TYPE_ALLOWED_EXTENSIONS[file_type]:
             self._logger.error('VIRUS File {0} has openxml content'.format(self._file_name))
-            raise InvalidContentError('File has openxml content')
+            raise SkipChecks()
 
     def _log_clean(self):
-        self._logger.info('OK')
+        self._logger.info('{0} OK'.format(self._file_name))

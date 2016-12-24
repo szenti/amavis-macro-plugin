@@ -28,6 +28,7 @@ class TestDocument(unittest.TestCase):
         magic.Magic.from_file = MagicMock(return_value='')
         sys.exit = MagicMock()
         os.path.exists = MagicMock(return_value=True)
+        os.path.isfile = MagicMock(return_value=True)
 
     def tearDown(self):
         magic.Magic.from_file = self.from_file
@@ -44,7 +45,7 @@ class TestDocument(unittest.TestCase):
         Document('something.txt').check()
 
         assert isinstance(self.logger.info, MagicMock)
-        self.logger.info.assert_called_once_with('OK')
+        self.logger.info.assert_called_once_with('something.txt OK')
 
     def test_check_NonexistentFile_LogsError(self):
         self.logger.error = MagicMock()

@@ -7,7 +7,8 @@ An Amavis antivirus plugin for detecting **m**acro **e**nabled **o**ffice docume
 * python-magic 0.4.12
 
 ## Installation
-Modify
+Add the following to the amavis config file
+(/etc/amavis/conf.d/15-av_scanners).
 ```perl
 ['MED Detector',
    '/usr/local/bin/detect-mde.py', "{}",

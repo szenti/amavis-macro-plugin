@@ -64,7 +64,7 @@ class TestDocument(unittest.TestCase):
 
         Document('/tmp/somefile.doc').check()
 
-        self.logger.error.assert_called_once_with('VIRUS File somefile.doc has openxml content')
+        self.logger.error.assert_called_once_with('VIRUS OpenXML content with invalid extension')
 
     def test_check_OpenXMLFileExtensionWithOpenXMLContent_DoesNotLogError(self):
         magic.Magic.from_file = MagicMock(return_value=CONTENT_TYPES['.docm'])

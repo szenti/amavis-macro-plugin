@@ -65,7 +65,7 @@ class Document:
             return
 
         if self._extension.lower() not in MIME_TYPE_ALLOWED_EXTENSIONS[file_type]:
-            self._logger.error('VIRUS File {0} has openxml content'.format(self._file_name))
+            self._logger.error('VIRUS OpenXML content with invalid extension')
             raise SkipChecks()
 
     def _log_clean(self):

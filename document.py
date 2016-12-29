@@ -24,7 +24,7 @@ OFFICE_MIME_TYPES = {
 
 class Document:
     __logger = None
-    __macro_summary = {}
+    __macro_flags = {}
 
     def __init__(self, filename):
         self._file_path = filename
@@ -35,24 +35,24 @@ class Document:
 
     @property
     def _logger(self):
-        if not self.__logger:
-            self.__logger = logging.getLogger('document')
+        if Document.__logger is None:
+            Document.__logger = logging.getLogger('document')
             console_handler = logging.StreamHandler(sys.stdout)
             console_handler.setFormatter(logging.Formatter('%(message)s'))
-            self.__logger.addHandler(console_handler)
-            self.__logger.setLevel(logging.WARNING)
+            Document.__logger.addHandler(console_handler)
+            Document.__logger.setLevel(logging.WARNING)
 
-        return self.__logger
+        return Document.__logger
 
     @property
     def _macro_flags(self):
-        if not self.__macro_summary:
+        if not Document.__macro_flags:
             expressions = [re.compile("^\|\s+" + exp, re.MULTILINE) for exp in
                            ('AutoExec', "Suspicious\s+\|\s+Shell", "Suspicious\s+\|\s+User-Agent")]
             details = ['execute automatically', 'execute file(s)', 'download file(s)']
-            self.__macro_summary = dict(zip(expressions, details))
+            Document.__macro_flags = dict(zip(expressions, details))
 
-        return self.__macro_summary
+        return Document.__macro_flags
 
     def check(self):
         try:

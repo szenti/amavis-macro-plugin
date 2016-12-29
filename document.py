@@ -45,7 +45,7 @@ class Document:
         return self.__logger
 
     @property
-    def _macro_summary(self):
+    def _macro_flags(self):
         if not self.__macro_summary:
             expressions = [re.compile("^\|\s+" + exp, re.MULTILINE) for exp in
                            ('AutoExec', "Suspicious\s+\|\s+Shell", "Suspicious\s+\|\s+User-Agent")]
@@ -98,8 +98,8 @@ class Document:
         return process.stdout.read()
 
     def __compute_macro_flags(self, output):
-        summary = []
-        for regexp in self._macro_summary.iterkeys():
+        flags = []
+        for regexp in self._macro_flags.keys():
             if regexp.findall(output):
-                summary.append(self._macro_summary[regexp])
-        return summary
+                flags.append(self._macro_flags[regexp])
+        return flags

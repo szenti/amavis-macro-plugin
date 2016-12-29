@@ -1,10 +1,11 @@
 # amavis-med-detector
-An Amavis antivirus plugin for detecting **m**acro **e**nabled **o**ffice documents
-(.doc, .xls, .docm, .xlsm).
+An Amavis antivirus plugin for detecting malicious macros in **m**acro
+**e**nabled **o**ffice documents (.doc, .xls, .docm, .xlsm, etc.)
 
 ## Prerequisites
 * python 2.7
 * python-magic 0.4.12
+* olevba from oletools 0.50
 
 ## Installation
 Add the following to the amavis config file

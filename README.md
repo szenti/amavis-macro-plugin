@@ -1,6 +1,6 @@
-# amavis-med-detector
-An Amavis antivirus plugin for detecting malicious macros in **m**acro
-**e**nabled **o**ffice documents (.doc, .xls, .docm, .xlsm, etc.)
+# amavis-mmd-detector
+An Amavis antivirus plugin for detecting malicious macros in Microsoft
+Office documents
 
 ## Prerequisites
 * python 2.7
@@ -9,7 +9,7 @@ An Amavis antivirus plugin for detecting malicious macros in **m**acro
 
 ## Installation
 Add the following to the amavis config file
-(/etc/amavis/conf.d/15-av_scanners).
+(/etc/amavis/conf.d/15-av_scanners in Ubuntu).
 ```perl
 ['MED Detector',
    '/usr/local/bin/detect-mde.py', "{}",

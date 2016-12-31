@@ -1,5 +1,5 @@
-# amavis-mom-detector
-Malicious Office Macro detector AV plugin for Amavis
+# amavis-macro-plugin
+An Amavis AV plugin for detecting Malicious Office Macros in e-mails.
 
 ## Prerequisites
 * python 2.7

@@ -47,7 +47,7 @@ unzip master.zip
 
 for file in mmd.py document.py; do
     dest=/usr/local/bin/${file}
-    sudo cp amavis-macro-plugin/${file} ${dest}
+    sudo cp amavis-macro-plugin-master/${file} ${dest}
     sudo chown root:amavis ${dest}
     sudo chmod 755 ${dest}
 done

@@ -1,0 +1,2 @@
+class SkipChecks(RuntimeError):
+    pass

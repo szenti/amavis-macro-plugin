@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 
-import magic
 import os
 import sys
 import logging
 import subprocess
 import re
+from skip_check import SkipChecks
 
 
-class SkipChecks(RuntimeError):
-    pass
-
-
+PATH_FILE = '/usr/bin/file'
 OFFICE_MIME_TYPES = {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -30,8 +27,6 @@ class Document:
         self._file_path = filename
         self._file_name, self._extension = os.path.splitext(os.path.split(filename)[1])
         self._file_name += self._extension
-
-        self._magic = magic.Magic(mime=True)
 
     @property
     def _logger(self):
@@ -74,7 +69,11 @@ class Document:
             raise SkipChecks()
 
     def _get_type(self):
-        return self._magic.from_file(self._file_path)
+        # params = {"file_utility_path": PATH_FILE, "document_to_check": self._file_path}
+        command = '{0} --brief --mime {1}'.format(PATH_FILE, self._file_path)
+        output = self._get_command_output(command)
+
+        return output
 
     def _log_clean(self):
         self._logger.info('{0} OK'.format(self._file_name))
@@ -86,14 +85,14 @@ class Document:
             self._check_macro_flags()
 
     def _check_macro_flags(self):
-        output = self._execute_command()
+        params = '/usr/local/bin/olevba -a {0}'.format(self._file_path)
+        output = self._get_command_output(params)
         flags = self.__compute_macro_flags(output)
 
         if flags:
             self._logger.error('VIRUS Contains macro(s) that ' + ', '.join(flags))
 
-    def _execute_command(self):
-        command = '/usr/local/bin/olevba -a {0}'.format(self._file_path)
+    def _get_command_output(self, command):
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         return process.stdout.read()
 

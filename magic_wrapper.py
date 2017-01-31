@@ -1,0 +1,2 @@
+class MagicWrapper:
+    pass

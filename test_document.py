@@ -162,5 +162,20 @@ class TestDocument(unittest.TestCase):
         self._assert_popen_call(self._setup_file_call(file_name))
 
 
+    @patch('subprocess.Popen')
+    def test_check_HideDetailsTrue_LogsErrorWithoutFlags(self, popen_mock):
+        self.logger.error = Mock()
+
+        self._setup_popen_mock('application/vnd.ms-excel')
+        self._setup_popen_mock('| Suspicious   | User-Agent')
+        subprocess.Popen.side_effect = self._side_effect
+
+        file_name = 'dangerous_macro.doc'
+        Document(file_name, True).check()
+
+        self._assert_popen_call(self._setup_olevba_call(file_name))
+        self.logger.error.assert_called_once_with('VIRUS Dangerous macro')
+
+
 if __name__ == '__main__':
     unittest.main()

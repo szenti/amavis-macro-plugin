@@ -25,11 +25,13 @@ MIME_TYPES_TO_CHECK = [
 class Document:
     __logger = None
     __macro_flags = {}
+    __hide_details = False
 
-    def __init__(self, filename):
+    def __init__(self, filename, hide_details=False):
         self._file_path = filename
         self._file_name, self._extension = os.path.splitext(os.path.split(filename)[1])
         self._file_name += self._extension
+        self.__hide_details = hide_details
 
     @property
     def _logger(self):
@@ -54,7 +56,8 @@ class Document:
         flags = ['execute automatically', 'execute file(s)', 'download file(s)']
         Document.__macro_flags = OrderedDict(zip(compiled, flags))
 
-    def _compile_regular_expressions(self):
+    @staticmethod
+    def _compile_regular_expressions():
         patterns = ('AutoExec', "Suspicious\s+\|\s+Shell", "Suspicious\s+\|\s+User-Agent")
         compiled = [re.compile("^\|\s+" + exp, re.MULTILINE) for exp in patterns]
         return compiled
@@ -96,23 +99,30 @@ class Document:
                 break
 
     def _check_macro_flags(self):
-        params = COMMAND_PATH['olevba'] +' -a {0}'.format(self._file_path)
+        params = COMMAND_PATH['olevba'] + ' -a {0}'.format(self._file_path)
         output = self._get_command_output(params)
         flags = self.__compute_macro_flags(output)
 
-        if flags:
-            self._logger.error('VIRUS Contains macro(s) that ' + ', '.join(flags))
+        self._log_infected(flags)
 
-    def _get_command_output(self, command):
+    @staticmethod
+    def _get_command_output(command):
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         return process.stdout.read()
 
     def __compute_macro_flags(self, output):
-        flags = []
-        for regexp in self._macro_flags.keys():
-            if regexp.findall(output):
-                flags.append(self._macro_flags[regexp])
-        return flags
+        return [self._macro_flags[regexp] for regexp in self._macro_flags.keys() if
+                regexp.findall(output)]
+
+    def _log_infected(self, flags):
+        message = self._get_log_message(flags)
+        self._logger.error(message)
+
+    def _get_log_message(self, flags):
+        if self.__hide_details:
+            return 'VIRUS Dangerous macro'
+
+        return 'VIRUS Contains macro(s) that ' + ', '.join(flags)
 
 
 class SkipChecks(RuntimeError):

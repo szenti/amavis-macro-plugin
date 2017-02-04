@@ -5,18 +5,21 @@ import sys
 import logging
 import subprocess
 import re
-from skip_check import SkipChecks
+from collections import OrderedDict
 
+COMMAND_PATH = {
+    'file': '/usr/bin/file',
+    'olevba': '/usr/local/bin/olevba'
+}
 
-PATH_FILE = '/usr/bin/file'
-OFFICE_MIME_TYPES = {
+MIME_TYPES_TO_CHECK = [
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'application/msword',
     'application/vnd.ms-excel',
     'application/vnd.ms-office'
-}
+]
 
 
 class Document:
@@ -42,12 +45,19 @@ class Document:
     @property
     def _macro_flags(self):
         if not Document.__macro_flags:
-            expressions = [re.compile("^\|\s+" + exp, re.MULTILINE) for exp in
-                           ('AutoExec', "Suspicious\s+\|\s+Shell", "Suspicious\s+\|\s+User-Agent")]
-            details = ['execute automatically', 'execute file(s)', 'download file(s)']
-            Document.__macro_flags = dict(zip(expressions, details))
+            self._setup_flags()
 
         return Document.__macro_flags
+
+    def _setup_flags(self):
+        compiled = self._compile_regular_expressions()
+        flags = ['execute automatically', 'execute file(s)', 'download file(s)']
+        Document.__macro_flags = OrderedDict(zip(compiled, flags))
+
+    def _compile_regular_expressions(self):
+        patterns = ('AutoExec', "Suspicious\s+\|\s+Shell", "Suspicious\s+\|\s+User-Agent")
+        compiled = [re.compile("^\|\s+" + exp, re.MULTILINE) for exp in patterns]
+        return compiled
 
     def check(self):
         try:
@@ -69,23 +79,24 @@ class Document:
             raise SkipChecks()
 
     def _get_type(self):
-        # params = {"file_utility_path": PATH_FILE, "document_to_check": self._file_path}
-        command = '{0} --brief --mime {1}'.format(PATH_FILE, self._file_path)
+        command = '{0} --brief --mime {1}'.format(COMMAND_PATH['file'], self._file_path)
         output = self._get_command_output(command)
 
-        return output
+        return output.lower()
 
     def _log_clean(self):
         self._logger.info('{0} OK'.format(self._file_name))
 
     def _check_contains_malicious_macro(self):
-        type = self._get_type()
+        document_type = self._get_type()
 
-        if type in OFFICE_MIME_TYPES:
-            self._check_macro_flags()
+        for mime_type in MIME_TYPES_TO_CHECK:
+            if mime_type in document_type:
+                self._check_macro_flags()
+                break
 
     def _check_macro_flags(self):
-        params = '/usr/local/bin/olevba -a {0}'.format(self._file_path)
+        params = COMMAND_PATH['olevba'] +' -a {0}'.format(self._file_path)
         output = self._get_command_output(params)
         flags = self.__compute_macro_flags(output)
 
@@ -102,3 +113,7 @@ class Document:
             if regexp.findall(output):
                 flags.append(self._macro_flags[regexp])
         return flags
+
+
+class SkipChecks(RuntimeError):
+    pass

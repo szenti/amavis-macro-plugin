@@ -1,0 +1,9 @@
+{
+  "paths": {
+    "file": "/usr/bin/file",
+    "olevba": "/usr/local/bin/olevba"
+  },
+  "logging": {
+    "hide_details": true
+  }
+}

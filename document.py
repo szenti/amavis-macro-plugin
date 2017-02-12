@@ -6,11 +6,8 @@ import logging
 import subprocess
 import re
 from collections import OrderedDict
+import json
 
-COMMAND_PATH = {
-    'file': '/usr/bin/file',
-    'olevba': '/usr/local/bin/olevba'
-}
 
 MIME_TYPES_TO_CHECK = [
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -18,8 +15,7 @@ MIME_TYPES_TO_CHECK = [
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'application/msword',
     'application/vnd.ms-excel',
-    'application/vnd.ms-office'
-]
+    'application/vnd.ms-office']
 
 
 class Document:
@@ -32,6 +28,17 @@ class Document:
         self._file_name, self._extension = os.path.splitext(os.path.split(filename)[1])
         self._file_name += self._extension
         self.__hide_details = hide_details
+
+    def initialize(self):
+        self._load_config()
+        return self
+
+    def _load_config(self):
+        script_directory = os.path.dirname(__file__)
+        config_file_path = os.path.join(script_directory, 'document_config.json')
+
+        with open(config_file_path, 'r') as file:
+            self.__config = json.load(file)
 
     @property
     def _logger(self):
@@ -64,6 +71,7 @@ class Document:
 
     def check(self):
         try:
+            self._read_config()
             self._check_file_exists()
             self._check_contains_malicious_macro()
             self._log_clean()
@@ -72,6 +80,10 @@ class Document:
         except Exception as ex:
             self._logger.error(ex)
             return
+
+    def _read_config(self):
+        pass
+
 
     def _check_file_exists(self):
         if not os.path.exists(self._file_path):
@@ -82,7 +94,7 @@ class Document:
             raise SkipChecks()
 
     def _get_type(self):
-        command = '{0} --brief --mime {1}'.format(COMMAND_PATH['file'], self._file_path)
+        command = '{0} --brief --mime {1}'.format(self.__config['paths']['file'], self._file_path)
         output = self._get_command_output(command)
 
         return output.lower()
@@ -99,7 +111,7 @@ class Document:
                 break
 
     def _check_macro_flags(self):
-        params = COMMAND_PATH['olevba'] + ' -a {0}'.format(self._file_path)
+        params = self.__config['paths']['olevba'] + ' -a {0}'.format(self._file_path)
         output = self._get_command_output(params)
         flags = self.__compute_macro_flags(output)
 

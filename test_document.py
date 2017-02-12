@@ -37,7 +37,7 @@ class TestDocument(unittest.TestCase):
     def test_check_FileWithNonXmlContent_ShouldLogClean(self):
         self.logger.info = MagicMock()
 
-        Document('something.txt').check()
+        Document('something.txt').initialize().check()
 
         assert isinstance(self.logger.info, MagicMock)
         self.logger.info.assert_called_once_with('something.txt OK')
@@ -46,7 +46,7 @@ class TestDocument(unittest.TestCase):
         self.logger.error = Mock()
         os.path.exists = Mock(return_value=False)
 
-        Document('nonexistent.file').check()
+        Document('nonexistent.file').initialize().check()
 
         assert isinstance(self.logger.error, Mock)
         self.logger.error.assert_called_once_with('File nonexistent.file does not exist')
@@ -63,7 +63,7 @@ class TestDocument(unittest.TestCase):
         self.logger.error = Mock()
 
         file_name = 'document_with_vba.doc'
-        Document(file_name).check()
+        Document(file_name).initialize().check()
 
         assert isinstance(subprocess.Popen, Mock)
         self._assert_popen_call(self._setup_file_call(file_name))
@@ -94,7 +94,7 @@ class TestDocument(unittest.TestCase):
         subprocess.Popen.side_effect = self._side_effect
 
         file_name = 'autoexec.doc'
-        Document(file_name).check()
+        Document(file_name).initialize().check()
 
         self._assert_popen_call(self._setup_olevba_call(file_name))
         self.logger.error.assert_called_once_with('VIRUS Contains macro(s) that execute automatically')
@@ -118,7 +118,7 @@ class TestDocument(unittest.TestCase):
         subprocess.Popen.side_effect = self._side_effect
 
         file_name = 'shell.doc'
-        Document(file_name).check()
+        Document(file_name).initialize().check()
 
         self._assert_popen_call(self._setup_olevba_call(file_name))
         self.logger.error.assert_called_once_with('VIRUS Contains macro(s) that execute file(s)')
@@ -132,7 +132,7 @@ class TestDocument(unittest.TestCase):
         subprocess.Popen.side_effect = self._side_effect
 
         file_name = 'downloader.doc'
-        Document(file_name).check()
+        Document(file_name).initialize().check()
 
         self._assert_popen_call(self._setup_olevba_call(file_name))
         self.logger.error.assert_called_once_with('VIRUS Contains macro(s) that download file(s)')
@@ -146,7 +146,7 @@ class TestDocument(unittest.TestCase):
         subprocess.Popen.side_effect = self._side_effect
 
         file_name = 'multiple_flags.doc'
-        Document(file_name).check()
+        Document(file_name).initialize().check()
 
         self._assert_popen_call(self._setup_olevba_call(file_name))
         self.logger.error.assert_called_once_with(
@@ -157,7 +157,7 @@ class TestDocument(unittest.TestCase):
         self._setup_popen_mock('ASCII text')
 
         file_name = 'example.txt'
-        Document(file_name).check()
+        Document(file_name).initialize().check()
 
         self._assert_popen_call(self._setup_file_call(file_name))
 
@@ -171,7 +171,7 @@ class TestDocument(unittest.TestCase):
         subprocess.Popen.side_effect = self._side_effect
 
         file_name = 'dangerous_macro.doc'
-        Document(file_name, True).check()
+        Document(file_name, True).initialize().check()
 
         self._assert_popen_call(self._setup_olevba_call(file_name))
         self.logger.error.assert_called_once_with('VIRUS Dangerous macro')
